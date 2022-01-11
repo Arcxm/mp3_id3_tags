@@ -19,6 +19,7 @@ before you include this file in *one* C or C++ file to create the implementation
 You can #define MP3_ID3_TAGS_USE_GENRES before the #include to also be able to read the genre.
 
 Revision history:
+    v1.2 (2022-01-11) Const correctness for mp3_id3_genres
     v1.1 (2020-07-27) Added mp3_id3_read_tag and mp3_id3_file_read_tag, updated documentation
     v1.0 (2020-07-26) First release
 
@@ -113,7 +114,7 @@ int mp3_id3_file_read_tags(FILE *f, mp3_id3_tags *tags);
 
 #define MP3_ID3_TAGS_GENRE_COUNT 148
 
-char *mp3_id3_genres[MP3_ID3_TAGS_GENRE_COUNT] =
+const char *mp3_id3_genres[MP3_ID3_TAGS_GENRE_COUNT] =
 {
 
     "Blues", "Classic Rock", "Country", "Dance",
