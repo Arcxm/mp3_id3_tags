@@ -1,6 +1,6 @@
 /*
 
-mp3_id3_tags: v1.1 by Marc Specht
+mp3_id3_tags: v1.2 by Marc Specht
 no warranty implied; use at your own risk
 
 See end of file for license information.
