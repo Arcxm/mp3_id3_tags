@@ -1,70 +1,80 @@
 # About mp3_id3_tags
 
-`mp3_id3_tags` is a public domain single header C/C++ library to read ID3 Tags from a MP3.
+`mp3_id3_tags` is a public domain single header C/C++ library to read ID3 Tags from an MP3.
 
-After looking at multiple single header C/C++ libraries and using them (especially the [stb](https://github.com/nothings/stb) ones), I decided to try and make one myself.
+After looking at multiple single header C/C++ libraries and using them (especially the [stb](https://github.com/nothings/stb) ones), i decided to try and make one myself.
 
-# Supported tags:
-Title, Artist, Album, Year, Comment and Genre.
+## Supported tags
 
-# Defines:
+- Title
+- Artist
+- Album
+- Year
+- Comment
+- Genre
 
-These need to be defined before the `mp3_id3_tags.h` file is included.
+## Defines
 
-Define `MP3_ID3_TAGS_IMPLEMENTATION` in *one* C or C++ file to create the implementation. <br />
-Define `MP3_ID3_TAGS_USE_GENRES` to be able to read the Genre tag.
+These need to be defined before the `mp3_id3_tags.h` file is included:
 
-# Documentation
+- `MP3_ID3_TAGS_IMPLEMENTATION` in *one* C or C++ file to create the implementation
+- `MP3_ID3_TAGS_USE_GENRES` to be able to read the genre tag
 
-Note: Each function comes in two variants.
+## Documentation
 
-The first one opens a file handle by itself and closes it afterwards. E.g. `mp3_id3_has_tags`. <br />
-The second one (with 'file' in the function name) uses an already existing file handle. E.g. `mp3_id3_file_has_tags`.
+### Example
+
+A full example program can be found [here](example.c).
+
+### Function variants
+
+Each function comes in two variants:
+
+1. Takes a filename and opens a file by itself
+2. Takes a file pointer and uses the already opened file ('file' in function name)
 
 ### mp3_id3_has_tags and mp3_id3_file_has_tags
 
-Check, whether or not the file has ID3 Tags.
-
-Returns 1 on success, or 0 on failure.
+Checks if an mp3 file has tag information.<br/>
+Returns 1 on success, 0 on failure.
 
 ```c
-if (mp3_id3_has_tags("mySong.mp3")) {
-  printf("ID3 Tags found!");
+if (mp3_id3_has_tags("song.mp3")) {
+  fprintf(stdout, "Song has tags!\n");
 } else {
-  printf("No ID3 Tags found!");
+  fprintf(stdout, "Song has no tags!\n");
 }
 ```
 
 ### mp3_id3_read_tag and mp3_id3_file_read_tag
 
-Read a specific single tag from a MP3. <br />
-Note: the returned char* has to be freed after it's usage to avoid a memory leak.
+Read a specific tag from an mp3 file.<br/>
+Returns a null terminated string which contains the data of the requested tag or `NULL` on failure.
 
-Returns a newly allocated char* which contains the tag's data, or NULL if it fails.
+Note that the returned string has to be freed after usage.
 
 ```c
-char *artist = mp3_id3_read_tag("mySong.mp3", MP3_ID3_TAG_ARTIST);
+char *artist = mp3_id3_read_tag("song.mp3", MP3_ID3_TAG_ARTIST);
 if (artist) {
-  printf("Artist: %s", artist);
+  fprintf(stdout, "Artist: %s\n", artist);
   free(artist);
   artist = NULL;
 } else {
-  perror("Failed to read artist tag");
+  fprintf(stderr, "error: %s\n", mp3_id3_failure_reason());
 }
 ```
 
 ### mp3_id3_read_tags and mp3_id3_file_read_tags
 
-Read the ID3 tags from a MP3.
-The supplied mp3_id3_tags structure will contain the tag data.
-
-Returns 1 on success, or 0 on failure.
+Read all tags from an mp3 file.<br/>
+Returns 1 on success, 0 on failure.<br/>
+The supplied mp3_id3_tags structure will contain the tag information.
 
 ```c
 mp3_id3_tags tags;
-if (mp3_id3_read_tags("mySong.mp3", &tags)) {
-  // Do something with the tag data
+if (mp3_id3_read_tags("song.mp3", &tags)) {
+  fprintf(stdout, "%s by %s\n", tags.title, tags.artist);
 } else {
-  perror("Failed to read tag data");
+  fprintf(stderr, "error: %s\n", mp3_id3_failure_reason());
 }
 ```
