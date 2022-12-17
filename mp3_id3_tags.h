@@ -1,4 +1,4 @@
-/* mp3_id3_tags: v2 by Marc Specht
+/* mp3_id3_tags: v2.1 by Marc Specht
 
     no warranty implied; use at your own risk
 
@@ -21,6 +21,7 @@ LICENSE
 
 REVISION HISTORY:
 
+    v2.1 (2022-12-17) Typedef tag type and fix error when reading genre
     v2.0 (2022-09-07) Refactor library
     v1.2 (2022-01-11) Const correctness for mp3_id3_genres
     v1.1 (2020-07-27) Added mp3_id3_read_tag and mp3_id3_file_read_tag, updated documentation
@@ -87,24 +88,25 @@ REVISION HISTORY:
 //
 
 #include <stdio.h> // for fclose, fopen, fread, fseek
-#include <string.h> // for malloc, strncmp, strcpy, strncpy
+#include <stdlib.h> // for malloc
+#include <string.h> // for strncmp, strcpy, strncpy
 
 ////////////////////////////////////
 //
 // Tags
 //
 
-enum {
-    MP3_ID3_TAG_TITLE = 0,
-    MP3_ID3_TAG_ARTIST = 30,
-    MP3_ID3_TAG_ALBUM = 60,
-    MP3_ID3_TAG_YEAR = 90,
-    MP3_ID3_TAG_COMMENT = 94
+typedef enum {
+    TITLE = 0,
+    ARTIST = 30,
+    ALBUM = 60,
+    YEAR = 90,
+    COMMENT = 94
 
     #ifdef MP3_ID3_TAGS_USE_GENRES
-    , MP3_ID3_TAG_GENRE = 124
+    , GENRE = 124
     #endif // MP3_ID3_TAGS_USE_GENRES
-};
+} mp3_id3_tag;
 
 typedef struct {
     char title[31];
@@ -126,8 +128,8 @@ typedef struct {
 int mp3_id3_has_tags(const char *filename);
 int mp3_id3_file_has_tags(FILE *f);
 
-char *mp3_id3_read_tag(const char *filename, int tag);
-char *mp3_id3_file_read_tag(FILE *f, int tag);
+char *mp3_id3_read_tag(const char *filename, mp3_id3_tag tag);
+char *mp3_id3_file_read_tag(FILE *f, mp3_id3_tag tag);
 
 int mp3_id3_read_tags(const char *filename, mp3_id3_tags *tags);
 int mp3_id3_file_read_tags(FILE *f, mp3_id3_tags *tags);
@@ -235,7 +237,7 @@ int mp3_id3_file_has_tags(FILE *f) {
     }
 }
 
-char *mp3_id3_read_tag(const char *filename, int tag) {
+char *mp3_id3_read_tag(const char *filename, mp3_id3_tag tag) {
     FILE *f = fopen(filename, "rb");
 
     char *ret = mp3_id3_file_read_tag(f, tag);
@@ -245,7 +247,7 @@ char *mp3_id3_read_tag(const char *filename, int tag) {
     return ret;
 }
 
-char *mp3_id3_file_read_tag(FILE *f, int tag) {
+char *mp3_id3_file_read_tag(FILE *f, mp3_id3_tag tag) {
     if (!f) {
         mp3_id3__err("File pointer was NULL");
         return NULL;
@@ -259,9 +261,9 @@ char *mp3_id3_file_read_tag(FILE *f, int tag) {
             return 0;
         }
         
-        unsigned char *ptr = id3 + 3 + tag;
+        char *ptr = id3 + 3 + tag;
         
-        size_t sz = (tag == MP3_ID3_TAG_YEAR) ? 5 : 31;
+        size_t sz = (tag == YEAR) ? 5 : 31;
         char *str = (char*) malloc(sizeof(char) * sz);
 
         if (!str) {
@@ -303,7 +305,7 @@ int mp3_id3_file_read_tags(FILE *f, mp3_id3_tags *tags) {
             return 0;
         }
 
-        unsigned char *ptr = id3 + 3;
+        char *ptr = id3 + 3;
 
         strncpy(tags->title, ptr, 30);
         tags->title[30] = '\0';
@@ -327,7 +329,7 @@ int mp3_id3_file_read_tags(FILE *f, mp3_id3_tags *tags) {
 
         #ifdef MP3_ID3_TAGS_USE_GENRES
 
-        if (*ptr >= MP3_ID3_TAGS_GENRE_COUNT) {
+        if (*ptr < 0 || *ptr >= MP3_ID3_TAGS_GENRE_COUNT) {
             strcpy(tags->genre, "Unknown");
         } else {
             strcpy(tags->genre, mp3_id3_genres[*ptr]);
