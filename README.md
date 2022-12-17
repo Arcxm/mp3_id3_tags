@@ -54,7 +54,7 @@ Returns a null terminated string which contains the data of the requested tag or
 Note that the returned string has to be freed after usage.
 
 ```c
-char *artist = mp3_id3_read_tag("song.mp3", MP3_ID3_TAG_ARTIST);
+char *artist = mp3_id3_read_tag("song.mp3", ARTIST);
 if (artist) {
   fprintf(stdout, "Artist: %s\n", artist);
   free(artist);
